@@ -90,6 +90,38 @@ export default {
       return handlePreflight();
     }
 
+    // ── Step 2.5: Health check endpoint ─────────────────────
+    // `/_health` is handled before authentication so that external
+    // uptime monitors (UptimeRobot, Cloudflare Health Checks, etc.)
+    // can probe the Worker without needing credentials.
+    if (url.pathname === '/_health') {
+      let configOk = true;
+      let bucketCount = 0;
+      try {
+        const parsed = getBucketConfigs(env.BUCKET_CONFIG_JSON);
+        bucketCount = Object.keys(parsed).length;
+      } catch {
+        configOk = false;
+      }
+
+      const body = JSON.stringify({
+        status: configOk ? 'ok' : 'degraded',
+        timestamp: new Date().toISOString(),
+        version: '1.0.0',
+        config: {
+          valid: configOk,
+          buckets: bucketCount,
+        },
+      });
+
+      return withCorsHeaders(
+        new Response(body, {
+          status: configOk ? 200 : 503,
+          headers: { 'Content-Type': 'application/json; charset=utf-8' },
+        }),
+      );
+    }
+
     // ── Step 3: Client authentication ───────────────────────
     // Supports both Authorization header and Presigned URL query string.
     const clientAk = extractAccessKey(request);

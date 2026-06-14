@@ -96,6 +96,54 @@ describe('Method Gating', () => {
   });
 });
 
+// ─── Health Check ────────────────────────────────────────────
+
+describe('Health Check', () => {
+  it('should return 200 with JSON status when config is valid', async () => {
+    const request = new Request('https://proxy.test/_health');
+    const response = await worker.fetch(request, TEST_ENV);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Content-Type')).toContain('application/json');
+
+    const body = await response.json() as Record<string, unknown>;
+    expect(body.status).toBe('ok');
+    expect(body.version).toBe('1.0.0');
+    expect(body).toHaveProperty('timestamp');
+    expect(body).toHaveProperty('config');
+  });
+
+  it('should report bucket count in config', async () => {
+    const request = new Request('https://proxy.test/_health');
+    const response = await worker.fetch(request, TEST_ENV);
+    const body = await response.json() as { config: { buckets: number } };
+    expect(body.config.buckets).toBe(2); // my-bucket + custom-endpoint-bucket
+  });
+
+  it('should return 503 degraded when config JSON is malformed', async () => {
+    const badEnv = { ...TEST_ENV, BUCKET_CONFIG_JSON: '{invalid' };
+    const request = new Request('https://proxy.test/_health');
+    const response = await worker.fetch(request, badEnv);
+
+    expect(response.status).toBe(503);
+    const body = await response.json() as Record<string, unknown>;
+    expect(body.status).toBe('degraded');
+  });
+
+  it('should NOT require authentication', async () => {
+    // No Authorization header — should still return 200, not 403
+    const request = new Request('https://proxy.test/_health');
+    const response = await worker.fetch(request, TEST_ENV);
+    expect(response.status).toBe(200);
+  });
+
+  it('should include CORS headers', async () => {
+    const request = new Request('https://proxy.test/_health');
+    const response = await worker.fetch(request, TEST_ENV);
+    expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
+  });
+});
+
 // ─── CORS Preflight ──────────────────────────────────────────
 
 describe('CORS Preflight', () => {
