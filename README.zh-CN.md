@@ -149,6 +149,33 @@ npm run deploy
 
 在 Cloudflare 控制台中为 Worker 添加自定义域名，例如 `s3.yourdomain.com`。
 
+### 4. 验证部署
+
+部署完成后，使用以下 cURL 命令逐步验证各项功能是否正常。请将 `<WORKER_URL>` 替换为你的 Worker 地址，`<YOUR_PROXY_KEY>` 替换为你设置的 `PROXY_ACCESS_KEY`。
+
+```bash
+# ① 无认证访问 → 预期返回 403 AccessDenied XML
+curl https://<WORKER_URL>/
+
+# ② 带认证访问根路径 → 预期返回 200 ListAllMyBucketsResult XML
+curl -H "Authorization: AWS4-HMAC-SHA256 Credential=<YOUR_PROXY_KEY>/20250101/us-east-1/s3/aws4_request, SignedHeaders=host, Signature=fake" \
+  https://<WORKER_URL>/
+
+# ③ HEAD Bucket → 预期返回 200 + x-amz-bucket-region 响应头
+curl -I -H "Authorization: AWS4-HMAC-SHA256 Credential=<YOUR_PROXY_KEY>/20250101/us-east-1/s3/aws4_request, SignedHeaders=host, Signature=fake" \
+  https://<WORKER_URL>/<YOUR_BUCKET_NAME>
+
+# ④ 不存在的 Bucket → 预期返回 404 NoSuchBucket XML
+curl -H "Authorization: AWS4-HMAC-SHA256 Credential=<YOUR_PROXY_KEY>/20250101/us-east-1/s3/aws4_request, SignedHeaders=host, Signature=fake" \
+  https://<WORKER_URL>/nonexistent-bucket
+
+# ⑤ PUT 写入操作 → 预期返回 405 MethodNotAllowed XML
+curl -X PUT -H "Authorization: AWS4-HMAC-SHA256 Credential=<YOUR_PROXY_KEY>/20250101/us-east-1/s3/aws4_request, SignedHeaders=host, Signature=fake" \
+  https://<WORKER_URL>/<YOUR_BUCKET_NAME>/test-write
+```
+
+如果以上所有返回结果均符合预期，说明代理已正确部署并工作正常。
+
 ## 🔧 客户端配置示例
 
 ### Rclone

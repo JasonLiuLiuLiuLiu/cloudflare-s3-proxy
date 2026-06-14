@@ -140,6 +140,33 @@ Your proxy will be live at `https://s3-proxy.<your-subdomain>.workers.dev`.
 
 In the Cloudflare dashboard, add a Custom Domain to your Worker to use your own domain, e.g. `s3.yourdomain.com`.
 
+### 4. Verify Deployment
+
+After deploying, run these cURL commands to verify everything works. Replace `<WORKER_URL>` with your Worker address and `<YOUR_PROXY_KEY>` with the `PROXY_ACCESS_KEY` you configured.
+
+```bash
+# ① No auth → expect 403 AccessDenied XML
+curl https://<WORKER_URL>/
+
+# ② Authenticated root path → expect 200 ListAllMyBucketsResult XML
+curl -H "Authorization: AWS4-HMAC-SHA256 Credential=<YOUR_PROXY_KEY>/20250101/us-east-1/s3/aws4_request, SignedHeaders=host, Signature=fake" \
+  https://<WORKER_URL>/
+
+# ③ HEAD Bucket → expect 200 + x-amz-bucket-region header
+curl -I -H "Authorization: AWS4-HMAC-SHA256 Credential=<YOUR_PROXY_KEY>/20250101/us-east-1/s3/aws4_request, SignedHeaders=host, Signature=fake" \
+  https://<WORKER_URL>/<YOUR_BUCKET_NAME>
+
+# ④ Non-existent bucket → expect 404 NoSuchBucket XML
+curl -H "Authorization: AWS4-HMAC-SHA256 Credential=<YOUR_PROXY_KEY>/20250101/us-east-1/s3/aws4_request, SignedHeaders=host, Signature=fake" \
+  https://<WORKER_URL>/nonexistent-bucket
+
+# ⑤ PUT write attempt → expect 405 MethodNotAllowed XML
+curl -X PUT -H "Authorization: AWS4-HMAC-SHA256 Credential=<YOUR_PROXY_KEY>/20250101/us-east-1/s3/aws4_request, SignedHeaders=host, Signature=fake" \
+  https://<WORKER_URL>/<YOUR_BUCKET_NAME>/test-write
+```
+
+If all responses match the expected results, your proxy is correctly deployed and operational.
+
 ## 🔧 Client Configuration
 
 ### Rclone
