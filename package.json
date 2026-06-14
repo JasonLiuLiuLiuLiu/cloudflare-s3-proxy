@@ -1,0 +1,24 @@
+{
+  "name": "cloudflare-s3-proxy",
+  "version": "1.0.0",
+  "description": "A lightweight S3 protocol proxy gateway built on Cloudflare Workers, designed to leverage the Bandwidth Alliance with Backblaze B2 for egress-free downloads.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "types": "wrangler types"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.16.15",
+    "@cloudflare/workers-types": "^4.20250604.0",
+    "typescript": "^5.8.3",
+    "vitest": "^4.1.8",
+    "wrangler": "^4.19.1"
+  },
+  "dependencies": {
+    "aws4fetch": "^1.0.20"
+  }
+}

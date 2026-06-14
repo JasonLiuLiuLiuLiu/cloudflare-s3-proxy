@@ -1,0 +1,28 @@
+# Cloudflare Worker S3 Proxy — wrangler.toml
+# ============================================================
+# This is a TEMPLATE. Fill in your actual values before deploying.
+
+name = "s3-proxy"
+main = "src/index.ts"
+compatibility_date = "2025-06-01"
+
+# ── Environment Variables ──────────────────────────────────────
+# PROXY_ACCESS_KEY: The passphrase clients must present as their
+#   S3 Access Key to be allowed through the proxy.
+#
+# BUCKET_CONFIG_JSON: A JSON string mapping bucket names to their
+#   real Backblaze B2 credentials.
+#
+# IMPORTANT: For production, set these as encrypted secrets via:
+#   wrangler secret put PROXY_ACCESS_KEY
+#   wrangler secret put BUCKET_CONFIG_JSON
+#
+# For local development, create a `.dev.vars` file instead (see README).
+
+[vars]
+# PROXY_ACCESS_KEY = "your-proxy-access-key"
+# BUCKET_CONFIG_JSON = '{"my-bucket":{"ak":"real-b2-key-id","sk":"real-b2-app-key","region":"us-west-004"}}'
+
+# ── Observability (optional) ──────────────────────────────────
+# [observability]
+# enabled = true

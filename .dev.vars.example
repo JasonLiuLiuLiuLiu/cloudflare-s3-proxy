@@ -1,0 +1,9 @@
+# ── Local Development Variables ──────────────────────────────
+# This file is used by `wrangler dev` for local development ONLY.
+# It is git-ignored and NEVER deployed.
+#
+# Copy this file to `.dev.vars` and fill in your values:
+#   cp .dev.vars.example .dev.vars
+
+PROXY_ACCESS_KEY=my-local-dev-access-key
+BUCKET_CONFIG_JSON={"dokploy-backups":{"ak":"005xxxxxxxxxxxx000000001","sk":"K005xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx","region":"us-west-004"}}
