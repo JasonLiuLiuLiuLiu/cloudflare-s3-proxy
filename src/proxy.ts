@@ -93,14 +93,21 @@ export async function forwardToBackend(
   const targetUrl = `${endpoint}${targetPath}${cleanQuery}`;
 
   // ── Prepare a clean set of headers ──────────────────────────
-  // Instead of deleting known headers, we whitelist: copy everything
-  // EXCEPT `host`, `authorization`, and ANY `x-amz-*` header.
-  // This prevents any client-injected AWS headers from leaking
-  // through to the backend and conflicting with our real signature.
+  // Copy everything EXCEPT host, authorization, x-amz-*, cf-*, x-real-ip,
+  // and x-forwarded-* headers. Cloudflare-specific headers are stripped 
+  // by Cloudflare's outbound fetch, which would cause signature mismatches
+  // on the backend if they were signed.
   const cleanHeaders = new Headers();
   for (const [key, value] of request.headers.entries()) {
     const lower = key.toLowerCase();
-    if (lower === 'host' || lower === 'authorization' || lower.startsWith('x-amz-')) {
+    if (
+      lower === 'host' ||
+      lower === 'authorization' ||
+      lower.startsWith('x-amz-') ||
+      lower.startsWith('cf-') ||
+      lower === 'x-real-ip' ||
+      lower.startsWith('x-forwarded-')
+    ) {
       continue;
     }
     cleanHeaders.set(key, value);
