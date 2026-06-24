@@ -2,7 +2,7 @@
 # ============================================================
 # This is a TEMPLATE. Fill in your actual values before deploying.
 
-name = "s3-proxy"
+name = "cloudflare-s3-proxy"
 main = "src/index.ts"
 compatibility_date = "2025-06-01"
 
